@@ -15,26 +15,32 @@ app.use(express.json());
 // Servir frontend estático
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Vars de entorno (Railway las inyecta en Settings → Variables)
-const {
-  PORT = process.env.PORT || '3000',
-  DB_HOST,
-  DB_PORT = '3306',
-  DB_USER,
-  DB_PASSWORD,
-  DB_NAME
-} = process.env;
 
-// Pool MySQL (Railway suele requerir SSL)
+// Vars (prefiere DB_*, cae a MYSQL_* si no existen)
+const env = process.env;
+
+const DB_HOST = env.DB_HOST || env.MYSQLHOST;
+const DB_PORT = Number(env.DB_PORT || env.MYSQLPORT || 3306);
+const DB_USER = env.DB_USER || env.MYSQLUSER;
+const DB_PASSWORD = env.DB_PASSWORD || env.MYSQLPASSWORD;
+const DB_NAME = env.DB_NAME || env.MYSQLDATABASE;
+const DB_SSL = env.DB_SSL; // opcional: "true" para forzar
+
+// Detecta si usar SSL
+const shouldUseSSL =
+  (DB_SSL && DB_SSL.toLowerCase() === 'true') ||
+  (!!DB_HOST && /(\.rlwy\.net|railway|proxy)/i.test(DB_HOST));
+
+// Solo añade ssl si hace falta
 const pool = createPool({
   host: DB_HOST,
-  port: Number(DB_PORT),
+  port: DB_PORT,
   user: DB_USER,
   password: DB_PASSWORD,
   database: DB_NAME,
   waitForConnections: true,
   connectionLimit: 4,
-  ssl: { rejectUnauthorized: true }
+  ...(shouldUseSSL ? { ssl: { rejectUnauthorized: false } } : {})
 });
 
 // Boot: crea tablas + seed 3 preguntas
