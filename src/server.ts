@@ -154,9 +154,10 @@ app.post('/api/submit-demo', async (req: Request, res: Response) => {
 app.get('/', (_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
+const PORT = Number(process.env.PORT ?? 3000);
 
 // Arrancar
-app.listen(Number(PORT), async () => {
+app.listen(PORT, async () => {
   console.log('API escuchando en :' + PORT);
   try { await boot(); } catch (e) { console.error('Boot DB error:', e); }
 });
