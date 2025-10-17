@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>CASM-83 – Smoke Test Railway</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; padding: 20px; }
+    button { margin: 6px 8px 6px 0; padding: 8px 12px; cursor: pointer; }
+    pre { background: #f5f5f5; padding: 12px; border-radius: 8px; overflow:auto; }
+  </style>
+</head>
+<body>
+  <h1>CASM-83 – Prueba rápida</h1>
+  <div>
+    <button id="btnHealth">Health</button>
+    <button id="btnRegister">Registrar (demo)</button>
+    <button id="btnList">Listar preguntas</button>
+    <button id="btnSubmit">Enviar respuestas (demo)</button>
+  </div>
+  <pre id="out">Salida…</pre>
+
+  <script>
+    const $ = (id)=>document.getElementById(id);
+    let respondent_id = null;
+
+    $('btnHealth').onclick = async ()=>{
+      const r = await fetch('/api/health');
+      $('out').textContent = await r.text();
+    };
+
+    $('btnRegister').onclick = async ()=>{
+      const r = await fetch('/api/register', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({})
+      });
+      const d = await r.json();
+      respondent_id = d.respondent_id;
+      $('out').textContent = 'Registrado → respondent_id=' + respondent_id;
+    };
+
+    $('btnList').onclick = async ()=>{
+      const r = await fetch('/api/questions');
+      $('out').textContent = await r.text();
+    };
+
+    $('btnSubmit').onclick = async ()=>{
+      if(!respondent_id){ alert('Primero pulsa Registrar (demo)'); return; }
+      const r = await fetch('/api/submit-demo', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ respondent_id })
+      });
+      $('out').textContent = await r.text();
+    };
+  </script>
+</body>
+</html>
